@@ -1,0 +1,4 @@
+pyBigWig==0.3.23
+pandas==2.2.3
+scipy==1.14.1
+Successfully installed tqdm-4.66.5
