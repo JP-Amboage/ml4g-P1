@@ -1,0 +1,6 @@
+pandas==2.2.3
+scipy==1.14.1
+pyBigWig==0.3.23
+seaborn==0.13.2
+matplotlib==3.9.2
+orjson==3.10.10
