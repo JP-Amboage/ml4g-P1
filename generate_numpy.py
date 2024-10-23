@@ -119,7 +119,7 @@ def arg2paths(arg: str)-> tuple[str, str, list[str]]:
 @click.argument('arg', type=str, required=True) #help='X1_train, X1_val, X2_train, X2_val'
 def main(arg: str):
     
-    print(f'-> Building numpy arrays for {arg} Train')
+    print(f'-> Building numpy arrays for {arg}')
     
     features_path, targets_path, bws = arg2paths(arg)
     X1_train, y1_train = build_numpy(features_path, targets_path, bws)
