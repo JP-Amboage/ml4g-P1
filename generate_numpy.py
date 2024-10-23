@@ -72,23 +72,65 @@ def build_numpy(features_path: str, targets_path: str, bws: list[str]) -> tuple[
     
     return X, y
 
+def arg2paths(arg: str)-> tuple[str, str, list[str]]:
+    if arg == 'X1_train':
+        features_path = PATH_TRAIN_X1_FEATURES
+        targets_path = PATH_TRAIN_X1_TARGETS
+        bws = [PATH_H3K4me1_X1_BW, 
+               PATH_H3K4me3_X1_BW, 
+               PATH_H3K9me3_X1_BW, 
+               PATH_H3K27ac_X1_BW, 
+               PATH_H3K27me3_X1_BW, 
+               PATH_H3K36me3_X1_BW]
 
+    elif arg == 'X1_val':
+        features_path = PATH_VAL_X1_FEATURES
+        targets_path = PATH_VAL_X1_TARGETS
+        bws = [PATH_H3K4me1_X1_BW, 
+               PATH_H3K4me3_X1_BW, 
+               PATH_H3K9me3_X1_BW, 
+               PATH_H3K27ac_X1_BW, 
+               PATH_H3K27me3_X1_BW, 
+               PATH_H3K36me3_X1_BW]
+        
+    elif arg == 'X2_train':
+        features_path = PATH_TRAIN_X2_FEATURES
+        targets_path = PATH_TRAIN_X2_TARGETS
+        bws = [PATH_H3K4me1_X2_BW, 
+               PATH_H3K4me3_X2_BW, 
+               PATH_H3K9me3_X2_BW, 
+               PATH_H3K27ac_X2_BW, 
+               PATH_H3K27me3_X2_BW, 
+               PATH_H3K36me3_X2_BW]
+        
+    elif arg == 'X2_val':
+        features_path = PATH_VAL_X2_FEATURES 
+        targets_path = PATH_VAL_X2_TARGETS
+        bws = [PATH_H3K4me1_X2_BW, 
+               PATH_H3K4me3_X2_BW, 
+               PATH_H3K9me3_X2_BW, 
+               PATH_H3K27ac_X2_BW, 
+               PATH_H3K27me3_X2_BW, 
+               PATH_H3K36me3_X2_BW]
+    
+    return features_path, targets_path, bws
 
+@click.command()
+@click.argument('arg', type=str, required=True) #help='X1_train, X1_val, X2_train, X2_val'
+def main(arg: str):
+    
+    print(f'-> Building numpy arrays for {arg} Train')
+    
+    features_path, targets_path, bws = arg2paths(arg)
+    X1_train, y1_train = build_numpy(features_path, targets_path, bws)
 
-def main():
-    if 
+    x_path = f'data/numpy/{arg}_X.npy'
+    print(f'-> Saving features to {x_path}')
+    np.save(f'data/numpy/{arg}_X.npy', X1_train)
 
-    print('-> Building numpy arrays for X1 Train')
-    X1_train, y1_train = build_numpy(
-                            PATH_TRAIN_X1_FEATURES, 
-                            PATH_TRAIN_X1_TARGETS, 
-                            [PATH_H3K4me1_X1_BW, 
-                             PATH_H3K4me3_X1_BW, 
-                             PATH_H3K9me3_X1_BW, 
-                             PATH_H3K27ac_X1_BW, 
-                             PATH_H3K27me3_X1_BW, 
-                             PATH_H3K36me3_X1_BW
-                            ])    
+    y_path = f'data/numpy/{arg}_y.npy'
+    print(f'-> Saving targets to {y_path}')
+    np.save(f'data/numpy/{arg}_y.npy', y1_train)
     
 if __name__ == '__main__':
     main()
