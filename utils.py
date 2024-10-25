@@ -1,10 +1,15 @@
 import logging
 import os
 import shutil
-from typing import Any, Callable, Type, TypeVar
+from datetime import datetime
+from typing import Any, Callable, Dict, Type, TypeVar
 
+import numpy as np
+import numpy.typing as npt
 import orjson
 import torch
+from scipy.stats import pearsonr, spearmanr
+from sklearn.metrics import r2_score
 
 
 class dotdict(dict):
@@ -108,7 +113,7 @@ class CustomLogger(object):
         file_handler.setFormatter(file_format)
         self.log.addHandler(file_handler)
 
-    def setLogLevel(self, log_level: int) -> None:
+    def setLogLevel(self, log_level: int | str) -> None:
         self.log.setLevel(log_level)
         for handler in self.log.handlers:
             handler.setLevel(log_level)
@@ -131,6 +136,213 @@ def log_exceptions_decorator(logger: logging.Logger) -> Callable[[F], F]:
         return wrapper  # type: ignore
 
     return decorator
+
+
+class AverageMeter:
+    """
+    Computes and stores the average and current value.
+    """
+
+    def __init__(self) -> None:
+        self.reset()
+
+    def reset(self) -> None:
+        """
+        Reset the meter.
+        """
+        self.val = 0.0
+        self.avg = 0.0
+        self.sum = 0.0
+        self.count = 0
+
+    def update(self, val: float, n: int = 1) -> None:
+        """
+        Update the meter.
+
+        Args:
+            val (float): The value to update.
+            n (int): The number of samples.
+        """
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
+
+
+def pearson_correlation(
+    predictions: npt.NDArray, targets: npt.NDArray
+) -> float:
+    """
+    Calculate the Pearson correlation
+
+    Args:
+        predictions(npt.NDArray): The predicted values.
+        targets(npt.NDArray): The target values.
+
+    Returns:
+        The Pearson correlation
+    """
+    assert (
+        predictions.shape == targets.shape
+    ), "Predictions and targets must have the same shape."
+    assert (
+        len(predictions.shape) == 1
+    ), "Predictions and targets must be 1D arrays."
+
+    # Manually calculate the Pearson correlation
+    mean_predictions = np.mean(predictions)
+    mean_targets = np.mean(targets)
+
+    numerator = np.sum(
+        (predictions - mean_predictions) * (targets - mean_targets)
+    )
+    denominator = np.sqrt(
+        np.sum((predictions - mean_predictions) ** 2)
+        * np.sum((targets - mean_targets) ** 2)
+    )
+
+    manual_corr = numerator / denominator
+
+    # Calculate the Pearson correlation
+    corr, _ = pearsonr(predictions, targets)
+
+    if not np.isclose(manual_corr, corr):
+        print(f"Manual calculation: {manual_corr}, scipy calculation: {corr}")
+
+    # assert np.isclose(
+    #     manual_corr, corr
+    # ), f"Manual calculation: {manual_corr}, scipy calculation: {corr}"
+
+    return corr
+
+
+def spearman_correlation(
+    predictions: npt.NDArray, targets: npt.NDArray
+) -> float:
+    """
+    Calculate the Spearman correlation
+
+    Args:
+        predictions(npt.NDArray): The predicted values.
+        targets(npt.NDArray): The target values.
+
+    Returns:
+        The Spearman correlation
+    """
+    assert (
+        predictions.shape == targets.shape
+    ), "Predictions and targets must have the same shape."
+    assert (
+        len(predictions.shape) == 1
+    ), "Predictions and targets must be 1D arrays."
+    # Get the ranks of predictions and targets
+    pred_ranks = np.argsort(np.argsort(predictions))
+    target_ranks = np.argsort(np.argsort(targets))
+
+    # Calculate the differences in ranks
+    d = pred_ranks - target_ranks
+
+    # Calculate the squared differences
+    d_squared = d**2
+
+    # Number of observations
+    n = len(predictions)
+
+    # Compute Spearman's correlation using the formula
+    rho = 1 - (6 * np.sum(d_squared)) / (n * (n**2 - 1))
+
+    # Calculate the Spearman correlation
+    spearman_corr = spearmanr(predictions, targets).correlation
+
+    if not np.isclose(rho, spearman_corr):
+        print(f"Manual calculation: {rho}, scipy calculation: {spearman_corr}")
+
+    # assert np.isclose(
+    #     rho, spearman_corr
+    # ), f"Manual calculation: {rho}, scipy calculation: {spearman_corr}"
+
+    return rho
+
+
+def r_squared(predictions: npt.NDArray, targets: npt.NDArray) -> float:
+    """
+    Calculate the R^2 score
+
+    Args:
+        predictions(npt.NDArray): The predicted values.
+        targets(npt.NDArray): The target values.
+
+    Returns:
+        The R^2 score
+    """
+    assert (
+        predictions.shape == targets.shape
+    ), "Predictions and targets must have the same shape."
+    assert (
+        len(predictions.shape) == 1
+    ), "Predictions and targets must be 1D arrays."
+
+    # Calculate the mean of the target values
+    mean_targets = np.mean(targets)
+
+    # Calculate the total sum of squares
+    total_sum_squares = np.sum((targets - mean_targets) ** 2)
+
+    # Calculate the residual sum of squares
+    residual_sum_squares = np.sum((targets - predictions) ** 2)
+
+    # Calculate the R^2 score
+    manual_r_squared = 1 - (residual_sum_squares / total_sum_squares)
+
+    # Use  sklearn's r2_score function
+    sklearn_r_squared = r2_score(targets, predictions)
+
+    if not np.isclose(manual_r_squared, sklearn_r_squared):
+        print(
+            f"Manual calculation: {manual_r_squared}, sklearn calculation: {sklearn_r_squared}"
+        )
+
+    # assert np.isclose(
+    #     manual_r_squared, sklearn_r_squared
+    # ), f"Manual calculation: {manual_r_squared}, sklearn calculation: {sklearn_r_squared}"
+
+    return manual_r_squared
+
+
+def setup_run(run_folder: str) -> Dict[str, str]:
+    """
+    Creates a new run folder under the specified run folder.
+
+    Args:
+        run_folder (str): The run folder path.
+
+    Returns:
+        Dict[str, str]: The paths to the subfolders.
+    """
+
+    date_and_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    run = f"{run_folder}/{date_and_time}"
+    if not os.path.exists(run):
+        os.makedirs(run, exist_ok=True)
+
+    # Create subfolders -> models, logs, outputs, tensorboard
+    checkpoints = f"{run}/checkpoints"
+    logs = f"{run}/logs"
+    outputs = f"{run}/outputs"
+    tensorboard = f"{run}/tensorboard"
+
+    os.makedirs(checkpoints, exist_ok=True)
+    os.makedirs(logs, exist_ok=True)
+    os.makedirs(outputs, exist_ok=True)
+    os.makedirs(tensorboard, exist_ok=True)
+
+    return {
+        "checkpoints": checkpoints,
+        "logs": logs,
+        "outputs": outputs,
+        "tensorboard": tensorboard,
+    }
 
 
 class Config(dotdict):
@@ -159,6 +371,8 @@ class Config(dotdict):
 
         if self.cuda and torch.cuda.is_available():
             self.device = "cuda"
+        elif torch.backends.mps.is_available():
+            self.device = "mps"
         else:
             self.device = "cpu"
 

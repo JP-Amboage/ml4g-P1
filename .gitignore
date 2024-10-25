@@ -3,3 +3,8 @@ data/*
 
 # macOS files to ignore
 .DS_Store
+
+__pycache__/
+.mypy_cache/
+
+runs/

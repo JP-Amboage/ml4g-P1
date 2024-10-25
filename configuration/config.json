@@ -1,10 +1,22 @@
 {
     "general": {
-        "numpy_data_dir": "data/numpy"
+        "numpy_data_dir": "data/numpy",
+        "cuda": true,
+        "seq_len": 128,
+        "histones": [
+            "H3K4me3",
+            "H3K27ac",
+            "H3K4me1",
+            "H3K36me3",
+            "H3K9me3",
+            "H3K27me3"
+        ],
+        "model_name": "cnn",
+        "debug": false
     },
     "hyperparams": {
-        "batch_size": 32,
-        "epochs": 100,
+        "batch_size": 64,
+        "epochs": 10,
         "learning_rate": 0.001,
         "momentum": 0.9,
         "weight_decay": 0.0001,

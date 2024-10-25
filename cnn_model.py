@@ -1,12 +1,13 @@
-from typing import List
+from typing import Dict, List
 
 import numpy.typing as npt
 import torch
-from base_model import BaseModel
 from torch import nn
 
+from base_model import BaseModel
 
-def conv_block(
+
+def conv_layer(
     in_channels: int,
     out_channels: int,
     kernel_size: int = 3,
@@ -29,7 +30,7 @@ def conv_block(
         out_channels,
         kernel_size=kernel_size,
         stride=stride,
-        padding=1,
+        padding=dilation,
         dilation=dilation,
     )
 
@@ -66,16 +67,23 @@ def mlp(
 
 class CNNArchitecture(nn.Module):
     def __init__(self, num_histones: int, seq_len: int) -> None:
+        super().__init__()
         self.num_histones = num_histones
         self.seq_len = seq_len
 
+        # original shape: (batch_size, num_histones, seq_len)
+
         self.cnn = nn.Sequential(
-            conv_block(num_histones, 16, dilation=2),
+            conv_layer(num_histones, 16, dilation=2),
+            nn.BatchNorm1d(16),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
-            conv_block(16, 32, dilation=2),
+            # shape is now (batch_size, 32, seq_len // 2)
+            conv_layer(16, 32, dilation=2),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2),
+            # shape is now (batch_size, 32, seq_len // 4)
             nn.Flatten(),
         )
 
@@ -84,14 +92,10 @@ class CNNArchitecture(nn.Module):
                 torch.zeros(1, num_histones, seq_len, dtype=torch.float32)
             ).shape[1]
 
-        assert n_flatten == 32 * (
-            seq_len // 4
-        ), f"Expected {32 * (seq_len // 4)}"
-
         self.fc = mlp(
-            in_features=32 * (seq_len // 4),
+            in_features=n_flatten,
             out_features=1,
-            layer_sizes=[64, 32],
+            layer_sizes=[256, 64],
             out_act=nn.Identity(),  # TODO: maybe RELU or Sigmoid?
         )
 
@@ -104,23 +108,40 @@ class CNNArchitecture(nn.Module):
 
 
 class CNNModel(BaseModel):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, run_dir: Dict[str, str]) -> None:
+        super().__init__(run_dir)
+
+        self.num_histones = len(self.cfg.histones)
+        self.seq_len = self.cfg.seq_len
+        self.model = CNNArchitecture(
+            num_histones=self.num_histones, seq_len=self.seq_len
+        ).to(self.cfg.device)
+
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(), lr=self.cfg.learning_rate
+        )
 
     def fit(
         self,
-        X_train: npt.NDArray,
-        y_train: npt.NDArray,
-        X_val: npt.NDArray,
-        y_val: npt.NDArray,
     ) -> None:
-        pass
+        self.torch_train_pipeline(
+            model=self.model,
+            optimizer=self.optimizer,
+            criterion=nn.MSELoss(),
+        )
 
     def predict(self, X: npt.NDArray) -> npt.NDArray:
-        pass
+        assert len(X.shape) == 3, "Unexpected number of dimensions"
+        assert X.shape[1] == self.num_histones, "Unexpected number of histones"
+        assert X.shape[2] == self.seq_len, "Unexpected sequence length"
+
+        X_torch = torch.tensor(X, dtype=torch.float32).to(self.cfg.device)
+
+        with torch.no_grad():
+            return self.model(X_torch).detach().cpu().numpy()
 
     def save_weights(self, path: str) -> None:
-        pass
+        torch.save(self.model.state_dict(), path)
 
     def load_weights(self, path: str) -> None:
-        pass
+        self.model.load_state_dict(torch.load(path))
