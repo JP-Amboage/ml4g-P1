@@ -51,6 +51,8 @@ def build_features(chrom: str, TSS_start: int, strand: str, bw) -> np.ndarray:
         start = TSS_start - SEQ_LENGTH//2 + i*BIN_SIZE
         end = start + BIN_SIZE
         values = bw.values(chrom, start, end)
+        if not np.isnan(values).all():
+            values = np.array(values)[~np.isnan(values)]
         features[i] = np.mean(values)
     if strand == '-':
         features = features[::-1]
