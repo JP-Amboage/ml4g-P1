@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
 
+import numpy as np
 import numpy.typing as npt
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -13,7 +14,26 @@ class BaseModel(ABC):
         self.cfg = Config()
         self.cfg.parse("hyperparams")
         self.logger = CustomLogger()
-        pass
+
+    def load_data(self) -> None:
+        # base path is self.cfg.data_path
+        # then we want X, and y numpy arrays, that are the result of concatenating:
+        # {X1. X2}_{train, val}_{X, y}.npy
+        # dont mind about the split and just merge everything into big X and y numpy arrays
+
+        X1_train_X = np.load(f"{self.cfg.data_path}/X1_train_X.npy")
+        X1_train_y = np.load(f"{self.cfg.data_path}/X1_train_y.npy")
+        X1_val_X = np.load(f"{self.cfg.data_path}/X1_val_X.npy")
+        X1_val_y = np.load(f"{self.cfg.data_path}/X1_val_y.npy")
+        X2_train_X = np.load(f"{self.cfg.data_path}/X2_train_X.npy")
+        X2_train_y = np.load(f"{self.cfg.data_path}/X2_train_y.npy")
+        X2_val_X = np.load(f"{self.cfg.data_path}/X2_val_X.npy")
+        X2_val_y = np.load(f"{self.cfg.data_path}/X2_val_y.npy")
+
+        self.X_train = np.concatenate((X1_train_X, X2_train_X), axis=1)
+        self.y_train = np.concatenate((X1_train_y, X2_train_y), axis=1)
+        self.X_val = np.concatenate((X1_val_X, X2_val_X), axis=1)
+        self.y_val = np.concatenate((X1_val_y, X2_val_y), axis=1)
 
     @abstractmethod
     def fit(

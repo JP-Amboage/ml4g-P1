@@ -1,5 +1,7 @@
 {
-    "general": {},
+    "general": {
+        "numpy_data_dir": "data/numpy"
+    },
     "hyperparams": {
         "batch_size": 32,
         "epochs": 100,
