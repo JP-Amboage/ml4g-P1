@@ -182,32 +182,32 @@ def pearson_correlation(
     Returns:
         The Pearson correlation
     """
-    assert (
-        predictions.shape == targets.shape
-    ), "Predictions and targets must have the same shape."
-    assert (
-        len(predictions.shape) == 1
-    ), "Predictions and targets must be 1D arrays."
+    # assert (
+    #     predictions.shape == targets.shape
+    # ), "Predictions and targets must have the same shape."
+    # assert (
+    #     len(predictions.shape) == 1
+    # ), "Predictions and targets must be 1D arrays."
 
-    # Manually calculate the Pearson correlation
-    mean_predictions = np.mean(predictions)
-    mean_targets = np.mean(targets)
+    # # Manually calculate the Pearson correlation
+    # mean_predictions = np.mean(predictions)
+    # mean_targets = np.mean(targets)
 
-    numerator = np.sum(
-        (predictions - mean_predictions) * (targets - mean_targets)
-    )
-    denominator = np.sqrt(
-        np.sum((predictions - mean_predictions) ** 2)
-        * np.sum((targets - mean_targets) ** 2)
-    )
+    # numerator = np.sum(
+    #     (predictions - mean_predictions) * (targets - mean_targets)
+    # )
+    # denominator = np.sqrt(
+    #     np.sum((predictions - mean_predictions) ** 2)
+    #     * np.sum((targets - mean_targets) ** 2)
+    # )
 
-    manual_corr = numerator / denominator
+    # manual_corr = numerator / denominator
 
     # Calculate the Pearson correlation
     corr, _ = pearsonr(predictions, targets)
 
-    if not np.isclose(manual_corr, corr):
-        print(f"[Pearson] Manual calculation: {manual_corr}, scipy calculation: {corr}")
+    # if not np.isclose(manual_corr, corr):
+    # print(f"[Pearson] Manual calculation: {manual_corr}, scipy calculation: {corr}")
 
     # assert np.isclose(
     #     manual_corr, corr
@@ -229,39 +229,41 @@ def spearman_correlation(
     Returns:
         The Spearman correlation
     """
-    assert (
-        predictions.shape == targets.shape
-    ), "Predictions and targets must have the same shape."
-    assert (
-        len(predictions.shape) == 1
-    ), "Predictions and targets must be 1D arrays."
-    # Get the ranks of predictions and targets
-    pred_ranks = np.argsort(np.argsort(predictions))
-    target_ranks = np.argsort(np.argsort(targets))
+    # assert (
+    #     predictions.shape == targets.shape
+    # ), "Predictions and targets must have the same shape."
+    # assert (
+    #     len(predictions.shape) == 1
+    # ), "Predictions and targets must be 1D arrays."
+    # # Get the ranks of predictions and targets
+    # pred_ranks = np.argsort(np.argsort(predictions))
+    # target_ranks = np.argsort(np.argsort(targets))
 
-    # Calculate the differences in ranks
-    d = pred_ranks - target_ranks
+    # # Calculate the differences in ranks
+    # d = pred_ranks - target_ranks
 
-    # Calculate the squared differences
-    d_squared = d**2
+    # # Calculate the squared differences
+    # d_squared = d**2
 
-    # Number of observations
-    n = len(predictions)
+    # # Number of observations
+    # n = len(predictions)
 
-    # Compute Spearman's correlation using the formula
-    rho = 1 - (6 * np.sum(d_squared)) / (n * (n**2 - 1))
+    # # Compute Spearman's correlation using the formula
+    # rho = 1 - (6 * np.sum(d_squared)) / (n * (n**2 - 1))
 
     # Calculate the Spearman correlation
     spearman_corr = spearmanr(predictions, targets).correlation
 
-    if not np.isclose(rho, spearman_corr):
-        print(f"[Spearman] Manual calculation: {rho}, scipy calculation: {spearman_corr}")
+    # if not np.isclose(rho, spearman_corr):
+    #     print(
+    #         f"[Spearman] Manual calculation: {rho}, scipy calculation: {spearman_corr}"
+    #     )
 
     # assert np.isclose(
     #     rho, spearman_corr
     # ), f"Manual calculation: {rho}, scipy calculation: {spearman_corr}"
 
-    return rho
+    return spearman_corr
 
 
 def r_squared(predictions: npt.NDArray, targets: npt.NDArray) -> float:
@@ -275,38 +277,38 @@ def r_squared(predictions: npt.NDArray, targets: npt.NDArray) -> float:
     Returns:
         The R^2 score
     """
-    assert (
-        predictions.shape == targets.shape
-    ), "Predictions and targets must have the same shape."
-    assert (
-        len(predictions.shape) == 1
-    ), "Predictions and targets must be 1D arrays."
+    # assert (
+    #     predictions.shape == targets.shape
+    # ), "Predictions and targets must have the same shape."
+    # assert (
+    #     len(predictions.shape) == 1
+    # ), "Predictions and targets must be 1D arrays."
 
-    # Calculate the mean of the target values
-    mean_targets = np.mean(targets)
+    # # Calculate the mean of the target values
+    # mean_targets = np.mean(targets)
 
-    # Calculate the total sum of squares
-    total_sum_squares = np.sum((targets - mean_targets) ** 2)
+    # # Calculate the total sum of squares
+    # total_sum_squares = np.sum((targets - mean_targets) ** 2)
 
-    # Calculate the residual sum of squares
-    residual_sum_squares = np.sum((targets - predictions) ** 2)
+    # # Calculate the residual sum of squares
+    # residual_sum_squares = np.sum((targets - predictions) ** 2)
 
-    # Calculate the R^2 score
-    manual_r_squared = 1 - (residual_sum_squares / total_sum_squares)
+    # # Calculate the R^2 score
+    # manual_r_squared = 1 - (residual_sum_squares / total_sum_squares)
 
     # Use  sklearn's r2_score function
     sklearn_r_squared = r2_score(targets, predictions)
 
-    if not np.isclose(manual_r_squared, sklearn_r_squared):
-        print(
-            f"[R2] Manual calculation: {manual_r_squared}, sklearn calculation: {sklearn_r_squared}"
-        )
+    # if not np.isclose(manual_r_squared, sklearn_r_squared):
+    #     print(
+    #         f"[R2] Manual calculation: {manual_r_squared}, sklearn calculation: {sklearn_r_squared}"
+    #     )
 
     # assert np.isclose(
     #     manual_r_squared, sklearn_r_squared
     # ), f"Manual calculation: {manual_r_squared}, sklearn calculation: {sklearn_r_squared}"
 
-    return manual_r_squared
+    return sklearn_r_squared
 
 
 def setup_run(run_folder: str) -> Dict[str, str]:

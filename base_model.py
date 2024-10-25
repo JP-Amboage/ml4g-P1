@@ -98,6 +98,10 @@ class BaseModel(ABC):
         X_train = (X_train - mean) / std
         X_val = (X_val - mean) / std
 
+        # Log-transform y
+        y_train = np.log(y_train + self.cfg.log_transform_epsilon)
+        y_val = np.log(y_val + self.cfg.log_transform_epsilon)
+
         X_train_th = torch.tensor(X_train, dtype=torch.float32)
         y_train_th = torch.tensor(y_train, dtype=torch.float32)
         X_val_th = torch.tensor(X_val, dtype=torch.float32)
@@ -153,6 +157,10 @@ class BaseModel(ABC):
                 optimizer.step()
 
                 epoch_loss.update(loss.item(), self.cfg.batch_size)
+
+                # Convert back from the log-transformed space
+                y_pred = torch.exp(y_pred) - self.cfg.log_transform_epsilon
+                y_batch = torch.exp(y_batch) - self.cfg.log_transform_epsilon
 
                 # Compute metrics
                 spearman_corr, pearson_corr, r_squared = self.compute_metrics(
@@ -251,6 +259,11 @@ class BaseModel(ABC):
             y_true = torch.cat((y_true, y_batch), dim=0)
 
         val_loss = criterion(y_preds, y_true).item()
+
+        # Convert back from the log-transformed space
+        y_preds = torch.exp(y_preds) - self.cfg.log_transform_epsilon
+        y_true = torch.exp(y_true) - self.cfg.log_transform_epsilon
+
         (
             val_spearman_corr,
             val_pearson_corr,
