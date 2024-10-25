@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+import numpy as np
 import numpy.typing as npt
 import torch
 from torch import nn
@@ -129,6 +130,22 @@ class CNNModel(BaseModel):
             optimizer=self.optimizer,
             criterion=nn.MSELoss(),
         )
+
+    @torch.no_grad()
+    def test(self) -> npt.NDArray:
+        self.model.eval()
+        self.logger.log.info("Testing the model...")
+
+        y_preds: npt.NDArray = np.array([], dtype=np.float32)
+
+        for X_batch, _ in self.test_loader:
+            y_pred = self.predict(X_batch)
+            y_preds = np.concatenate((y_preds, y_pred), axis=0)
+
+        # Convert back from the log-transformed space
+        y_preds = np.exp(y_preds) - self.cfg.log_transform_epsilon
+
+        return y_preds
 
     def predict(self, X: npt.NDArray) -> npt.NDArray:
         assert len(X.shape) == 3, "Unexpected number of dimensions"

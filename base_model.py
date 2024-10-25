@@ -31,8 +31,17 @@ class BaseModel(ABC):
         self.load_data()
 
         # Preprocess data for Torch-based models
-        self.train_loader, self.val_loader = self.preprocess_data(
-            self.X_train, self.y_train, self.X_val, self.y_val
+        (
+            self.train_loader,
+            self.val_loader,
+            self.test_loader,
+        ) = self.preprocess_data(
+            self.X_train,
+            self.y_train,
+            self.X_val,
+            self.y_val,
+            self.X_test,
+            self.y_test,
         )
 
     def load_data(self) -> None:
@@ -50,10 +59,13 @@ class BaseModel(ABC):
         X2_train_y = np.load(f"{self.cfg.numpy_data_dir}/X2_train_y.npy")
         X2_val_X = np.load(f"{self.cfg.numpy_data_dir}/X2_val_X.npy")
         X2_val_y = np.load(f"{self.cfg.numpy_data_dir}/X2_val_y.npy")
+        self.X_test = np.load(f"{self.cfg.numpy_data_dir}/X3_test_X.npy")
+        self.y_test = np.load(f"{self.cfg.numpy_data_dir}/X3_test_y.npy")
 
         self.X_train = np.concatenate((X1_train_X, X2_train_X), axis=0)
         self.y_train = np.concatenate((X1_train_y, X2_train_y), axis=0)
         self.y_train = np.expand_dims(self.y_train, axis=1)
+
         self.X_val = np.concatenate((X1_val_X, X2_val_X), axis=0)
         self.y_val = np.concatenate((X1_val_y, X2_val_y), axis=0)
         self.y_val = np.expand_dims(self.y_val, axis=1)
@@ -62,6 +74,8 @@ class BaseModel(ABC):
         self.logger.log.info(f"y_train shape: {self.y_train.shape}")
         self.logger.log.info(f"X_val shape: {self.X_val.shape}")
         self.logger.log.info(f"y_val shape: {self.y_val.shape}")
+        self.logger.log.info(f"X_test shape: {self.X_test.shape}")
+        self.logger.log.info(f"y_test shape: {self.y_test.shape}")
 
     def preprocess_data(
         self,
@@ -69,7 +83,26 @@ class BaseModel(ABC):
         y_train: npt.NDArray,
         X_val: npt.NDArray,
         y_val: npt.NDArray,
-    ) -> Tuple[DataLoader, DataLoader]:
+        X_test: npt.NDArray,
+        y_test: npt.NDArray,
+    ) -> Tuple[DataLoader, DataLoader, DataLoader]:
+        """
+        Preprocess the data for Torch-based models.
+        Apply normalization and log-transform to the data.
+
+        Args:
+            X_train(npt.NDArray): The training data.
+            y_train(npt.NDArray): The training labels.
+            X_val(npt.NDArray): The validation data.
+            y_val(npt.NDArray): The validation labels.
+            X_test(npt.NDArray): The test data.
+            y_test(npt.NDArray): The test labels.
+
+        Returns:
+            The training DataLoader
+            The validation DataLoader
+            The test DataLoader
+        """
         # X_train has shape (n_samples, n_histones, seq_len), idem for X_val
         # y_train has shape (n_samples, 1), idem for y_val
 
@@ -97,6 +130,7 @@ class BaseModel(ABC):
 
         X_train = (X_train - mean) / std
         X_val = (X_val - mean) / std
+        X_test = (X_test - mean) / std
 
         # Log-transform y
         y_train = np.log(y_train + self.cfg.log_transform_epsilon)
@@ -106,9 +140,12 @@ class BaseModel(ABC):
         y_train_th = torch.tensor(y_train, dtype=torch.float32)
         X_val_th = torch.tensor(X_val, dtype=torch.float32)
         y_val_th = torch.tensor(y_val, dtype=torch.float32)
+        X_test_th = torch.tensor(X_test, dtype=torch.float32)
+        y_test_th = torch.tensor(y_test, dtype=torch.float32)
 
         train_dataset = TensorDataset(X_train_th, y_train_th)
         val_dataset = TensorDataset(X_val_th, y_val_th)
+        test_dataset = TensorDataset(X_test_th, y_test_th)
 
         train_loader = DataLoader(
             train_dataset,
@@ -122,8 +159,14 @@ class BaseModel(ABC):
             shuffle=False,
             num_workers=4,
         )
+        test_loader = DataLoader(
+            test_dataset,
+            batch_size=self.cfg.batch_size,
+            shuffle=False,
+            num_workers=4,
+        )
 
-        return train_loader, val_loader
+        return train_loader, val_loader, test_loader
 
     def torch_train_pipeline(
         self,
@@ -313,6 +356,10 @@ class BaseModel(ABC):
         pass
 
     @abstractmethod
+    def test(self) -> npt.NDArray:
+        pass
+
+    @abstractmethod
     def predict(self, X: npt.NDArray) -> npt.NDArray:
         pass
 
@@ -331,4 +378,13 @@ class BaseModel(ABC):
 
     @abstractmethod
     def load_weights(self, path: str) -> None:
+        """
+        Load the model weights from a file.
+
+        Args:
+            path(str): The path to load the weights from.
+
+        Returns:
+            None
+        """
         pass

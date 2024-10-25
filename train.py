@@ -1,6 +1,10 @@
 import os
 from typing import Dict
 
+import numpy as np
+import numpy.typing as npt
+import pandas as pd
+
 from base_model import BaseModel
 from cnn_model import CNNModel
 from utils import Config, CustomLogger, setup_run
@@ -29,6 +33,28 @@ def get_model(model_name: str, run_dir: Dict[str, str]) -> BaseModel:
     raise ValueError(f"Model {model_name} not found")
 
 
+def generate_submission(
+    y_pred: npt.NDArray[np.float32], test_data_path: str
+) -> None:
+    """
+    Generate the submission file
+
+    Args:
+        y_pred (npt.NDArray[np.float32]): The predictions.
+        test_data_path (str): The test data path.
+    """
+    logger.log.info("Generating submission file...")
+
+    # Load the pandas dataframe
+    df = pd.read_csv(test_data_path, delimiter="\t")
+
+    # Add a new column with the predictions
+    df["gex_predicted"] = y_pred
+
+    # Save only columns: index, gene_name and gex_predicted
+    df[["gene_name", "gex_predicted"]].to_csv("submission.csv", index=True)
+
+
 def main() -> None:
     # Setup run directory
     os.makedirs("runs", exist_ok=True)
@@ -55,6 +81,13 @@ def main() -> None:
     model = get_model(cfg.model_name, run_dir)
     model.fit()
 
+    # Test the model
+    y_pred = model.test()
+
+    # Generate submission
+    generate_submission(y_pred, cfg.test_data_path)
+
 
 if __name__ == "__main__":
+    main()
     main()
