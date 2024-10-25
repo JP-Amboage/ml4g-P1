@@ -237,8 +237,8 @@ class BaseModel(ABC):
         """
         model.eval()
 
-        y_preds: torch.Tensor = torch.tensor([])
-        y_true: torch.Tensor = torch.tensor([])
+        y_preds: torch.Tensor = torch.tensor([]).to(self.cfg.device)
+        y_true: torch.Tensor = torch.tensor([]).to(self.cfg.device)
 
         for X_batch, y_batch in self.val_loader:
             X_batch, y_batch = (

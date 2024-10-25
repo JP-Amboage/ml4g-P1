@@ -23,6 +23,7 @@
         "lr_scheduler": {
             "step_size": 30,
             "gamma": 0.1
-        }
+        },
+        "patience": 5
     }
 }

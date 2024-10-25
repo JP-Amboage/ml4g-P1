@@ -207,7 +207,7 @@ def pearson_correlation(
     corr, _ = pearsonr(predictions, targets)
 
     if not np.isclose(manual_corr, corr):
-        print(f"Manual calculation: {manual_corr}, scipy calculation: {corr}")
+        print(f"[Pearson] Manual calculation: {manual_corr}, scipy calculation: {corr}")
 
     # assert np.isclose(
     #     manual_corr, corr
@@ -255,7 +255,7 @@ def spearman_correlation(
     spearman_corr = spearmanr(predictions, targets).correlation
 
     if not np.isclose(rho, spearman_corr):
-        print(f"Manual calculation: {rho}, scipy calculation: {spearman_corr}")
+        print(f"[Spearman] Manual calculation: {rho}, scipy calculation: {spearman_corr}")
 
     # assert np.isclose(
     #     rho, spearman_corr
@@ -299,7 +299,7 @@ def r_squared(predictions: npt.NDArray, targets: npt.NDArray) -> float:
 
     if not np.isclose(manual_r_squared, sklearn_r_squared):
         print(
-            f"Manual calculation: {manual_r_squared}, sklearn calculation: {sklearn_r_squared}"
+            f"[R2] Manual calculation: {manual_r_squared}, sklearn calculation: {sklearn_r_squared}"
         )
 
     # assert np.isclose(
