@@ -131,7 +131,7 @@ class BaseModel(ABC):
         optimizer: torch.optim.Optimizer,
         criterion: torch.nn.Module,
     ) -> None:
-        best_val_loss = float("inf")
+        best_val_spearman = float("-inf")
 
         epochs_without_improvement = 0
 
@@ -209,9 +209,9 @@ class BaseModel(ABC):
             )
             self.summary_writer.add_scalar("R^2/val", val_r_squared, epoch)
 
-            if val_loss < best_val_loss:
+            if val_spearman_corr > best_val_spearman:
                 self.logger.log.info("IMPROVED! ******")
-                best_val_loss = val_loss
+                best_val_spearman = val_spearman_corr
                 epochs_without_improvement = 0
                 self.save_weights(
                     f"{self.run_dir['checkpoints']}/best_model.pth"
