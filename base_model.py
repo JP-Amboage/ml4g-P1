@@ -77,6 +77,27 @@ class BaseModel(ABC):
             "Preprocessing data. Converting Numpy arrays to PyTorch DataLoader..."
         )
 
+        # Remove samples having any NaN value
+        original_n_samples = X_train.shape[0]
+        nan_samples = np.isnan(X_train).any(axis=(1, 2))
+        X_train = X_train[~nan_samples]
+        y_train = y_train[~nan_samples]
+        self.logger.log.info(
+            f"Removed {original_n_samples - X_train.shape[0]} samples "
+            f"out of {original_n_samples} due to NaN values"
+        )
+
+        # Normalize data
+        mean = np.mean(X_train, axis=(0, 2), keepdims=True)
+        std = np.std(X_train, axis=(0, 2), keepdims=True)
+
+        # TODO: log histone-wise mean and std
+
+        std[std == 0] = 1  # Avoid division by zero
+
+        X_train = (X_train - mean) / std
+        X_val = (X_val - mean) / std
+
         X_train_th = torch.tensor(X_train, dtype=torch.float32)
         y_train_th = torch.tensor(y_train, dtype=torch.float32)
         X_val_th = torch.tensor(X_val, dtype=torch.float32)
