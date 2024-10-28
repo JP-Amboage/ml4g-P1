@@ -1,6 +1,7 @@
 {
     "general": {
         "numpy_data_dir": "data/numpy",
+        "test_data_path": "data/ML4G_Project_1_Data/CAGE-train/X3_test_info.tsv",
         "cuda": true,
         "seq_len": 128,
         "histones": [
@@ -25,6 +26,6 @@
             "step_size": 30,
             "gamma": 0.1
         },
-        "patience": 5
+        "patience": 10
     }
 }

@@ -140,7 +140,10 @@ class CNNModel(BaseModel):
 
         for X_batch, _ in self.test_loader:
             y_pred = self.predict(X_batch)
-            y_preds = np.concatenate((y_preds, y_pred), axis=0)
+            if not y_preds.size:
+                y_preds = y_pred
+            else:
+                y_preds = np.concatenate((y_preds, y_pred), axis=0)
 
         # Convert back from the log-transformed space
         y_preds = np.exp(y_preds) - self.cfg.log_transform_epsilon
