@@ -49,20 +49,20 @@ After completing this step you should find that the following file has been crea
 
 ## File Structure
 The relevant file strucutre of the project along which what can be found in each file is listed here.
-* `./configuration`:
-    * `config.json`:
-* `./data`:
-    * `ML4G_Project_1_Data`
-    * `numpy`
-* `./notebooks`:
-    * `analysis.ipynb`
-* `./src`:
-    * `./base_model.py`
-    * `./cnn_model.py`
-    * `./generate_numpy.py`
-    * `./requirements.txt`
-    * `./train.py`
-    * `./utils.py`
+* `./configuration`: folder storing configuration files.
+    * `config.json`: configuration file with hyperparameters for the model and training instrucitons.
+* `./data`: folder for data storage.
+    * `ML4G_Project_1_Data`: data originally provided for the project.
+    * `numpy`: features and target values for training/evaluating the model stored in `.npy` format.
+* `./notebooks`: folder for jupyter notebooks.
+    * `analysis.ipynb`: jupyter notebook to get data insights.
+* `./src`: source code for the project.
+    * `./base_model.py`: parent class common for all prediction models in case multiple strategies are implemented.
+    * `./cnn_model.py`: CNN model used for the project.
+    * `./generate_numpy.py`: generate features and targets in an appropiate format to train the models.
+    * `./train.py`: train a model and make predictions on the test set (generates the submission file).
+    * `./utils.py`: miscelaneous functions that may be shared among scripts.
+* `./requirements.txt`: python package requirements to run the code.
 
 
 
