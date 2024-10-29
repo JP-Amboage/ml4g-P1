@@ -4,8 +4,8 @@ import pyBigWig
 from tqdm import tqdm
 import click
 
-BIN_SIZE = 64*2
-SEQ_LENGTH = 32768//2
+BIN_SIZE = 64 
+SEQ_LENGTH = 32768 // 2
 
 PATH_TRAIN_X1_FEATURES = 'data/ML4G_Project_1_Data/CAGE-train/X1_train_info.tsv'
 PATH_TRAIN_X1_TARGETS = 'data/ML4G_Project_1_Data/CAGE-train/X1_train_y.tsv'
@@ -20,6 +20,7 @@ PATH_TRAIN_X2_TARGETS = 'data/ML4G_Project_1_Data/CAGE-train/X2_train_y.tsv'
 PATH_VAL_X2_FEATURES = 'data/ML4G_Project_1_Data/CAGE-train/X2_val_info.tsv'
 PATH_VAL_X2_TARGETS = 'data/ML4G_Project_1_Data/CAGE-train/X2_val_y.tsv'
 
+PATH_TEST_X3_FEATURES = 'data/ML4G_Project_1_Data/CAGE-train/X3_test_info.tsv'
 
 PATH_H3K4me1_X1_BW = 'data/ML4G_Project_1_Data/H3K4me1-bigwig/X1.bigwig'
 PATH_H3K4me3_X1_BW = 'data/ML4G_Project_1_Data/H3K4me3-bigwig/X1.bw'
@@ -34,6 +35,13 @@ PATH_H3K9me3_X2_BW = 'data/ML4G_Project_1_Data/H3K9me3-bigwig/X2.bw'
 PATH_H3K27ac_X2_BW = 'data/ML4G_Project_1_Data/H3K27ac-bigwig/X2.bw'
 PATH_H3K27me3_X2_BW = 'data/ML4G_Project_1_Data/H3K27me3-bigwig/X2.bw'
 PATH_H3K36me3_X2_BW = 'data/ML4G_Project_1_Data/H3K36me3-bigwig/X2.bw'
+
+PATH_H3K4me1_X3_BW = 'data/ML4G_Project_1_Data/H3K4me1-bigwig/X3.bw'
+PATH_H3K4me3_X3_BW = 'data/ML4G_Project_1_Data/H3K4me3-bigwig/X3.bigwig'
+PATH_H3K9me3_X3_BW = 'data/ML4G_Project_1_Data/H3K9me3-bigwig/X3.bigwig'
+PATH_H3K27ac_X3_BW = 'data/ML4G_Project_1_Data/H3K27ac-bigwig/X3.bw'
+PATH_H3K27me3_X3_BW = 'data/ML4G_Project_1_Data/H3K27me3-bigwig/X3.bigwig'
+PATH_H3K36me3_X3_BW = 'data/ML4G_Project_1_Data/H3K36me3-bigwig/X3.bigwig'
 
 
 def build_features(chrom: str, TSS_start: int, strand: str, bw) -> np.ndarray:
@@ -118,6 +126,21 @@ def arg2paths(arg: str)-> tuple[str, str, list[str]]:
                PATH_H3K27ac_X2_BW, 
                PATH_H3K27me3_X2_BW, 
                PATH_H3K36me3_X2_BW]
+        
+    elif arg == 'X3_test':
+        features_path = PATH_TEST_X3_FEATURES
+        targets_path = None
+        bws = [PATH_H3K4me1_X3_BW, 
+               PATH_H3K4me3_X3_BW, 
+               PATH_H3K9me3_X3_BW, 
+               PATH_H3K27ac_X3_BW, 
+               PATH_H3K27me3_X3_BW, 
+               PATH_H3K36me3_X3_BW]
+        
+    else:
+        print('-> Invalid argument')
+        print('-> Valid arguments are: X1_train, X1_val, X2_train, X2_val, X3_test')
+        exit(1)
     
     return features_path, targets_path, bws
 
