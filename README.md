@@ -1,4 +1,4 @@
-# Machine Learning fo Genomics: Project 1
+# Machine Learning for Genomics: Project 1
 ## Table of contents
 1. [How to setup this repo](#setup-and-installation)
 2. [Reproduce experiments](#reproduce-experiments)
